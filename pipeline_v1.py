@@ -1,4 +1,5 @@
 from trkr.Sample import HitSample
+from trkr.Model.GCN import GCN
 from trkr.Train import Train
 import numpy as np
 
@@ -9,6 +10,25 @@ import numpy as np
 
 if __name__ == "__main__":
     # Create a sample object
-    sample = HitSample()
-    sample.generate_sample(1, 100)
+    sample = HitSample(1000)
+    # sample.generate_samples(1)
+    # # sample.visualie_sample()
+    # sample.save_samples("sample_store")
+    # # sample.load_samples("sample_store")
+    # # # sample.visualie_sample()
+    #
+    #
+    # sample.sample2graph()
+    # sample.save_graphs("graph_store")
+    sample.load_graphs("graph_store")
+    # sample.visualize_graph()
+
+    graph = sample.getgraph(0)
+
+    model = GCN(graph.num_features, 64)
+
+    train = Train(model, sample.gen_graphs)
+    train.train(100, True)
+
     print(sample)
+    print(train)

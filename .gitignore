@@ -34,3 +34,5 @@
 /venv
 
 *.pyc
+/graph_store
+/sample_store
