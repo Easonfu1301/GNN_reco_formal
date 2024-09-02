@@ -11,16 +11,16 @@ import numpy as np
 if __name__ == "__main__":
     # Create a sample object
     sample = HitSample(1000)
-    # sample.generate_samples(1)
+    sample.generate_samples(1)
     # # sample.visualie_sample()
     # sample.save_samples("sample_store")
     # # sample.load_samples("sample_store")
     # # # sample.visualie_sample()
     #
     #
-    # sample.sample2graph()
+    sample.sample2graph()
     # sample.save_graphs("graph_store")
-    sample.load_graphs("graph_store")
+    # sample.load_graphs("graph_store")
     # sample.visualize_graph()
 
     graph = sample.getgraph(0)
@@ -28,7 +28,7 @@ if __name__ == "__main__":
     model = GCN(graph.num_features, 64)
 
     train = Train(model, sample.gen_graphs)
-    train.train(100, True)
+    train.train(10000, False)
 
     print(sample)
     print(train)

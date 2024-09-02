@@ -41,7 +41,7 @@ class Train:
 
     def initial_model(self):
         train_data, val_data, test_data = self.split_dataset()
-        optimizer = torch.optim.Adam(self.model.parameters(), lr=0.01)
+        optimizer = torch.optim.Adam(self.model.parameters(), lr=0.003)
 
         self.train_data = train_data.to(device)
         self.val_data = val_data.to(device)
@@ -59,6 +59,10 @@ class Train:
         self.model.train()
         self.optimizer.zero_grad()
         z = self.model.encode(self.train_data.x, self.train_data.edge_index)
+
+        # print(self.model.decode(z, self.train_data.edge_label_index).shape)
+        # print(self.train_data.edge_label.to(torch.float32).shape)
+
         loss = F.binary_cross_entropy_with_logits(
             self.model.decode(z, self.train_data.edge_label_index),
             self.train_data.edge_label.to(torch.float32)
@@ -68,34 +72,59 @@ class Train:
         return loss.item()
 
 
-    def train(self, epochs=10, visualize=False):
+    def train(self, epochs=100, visualize=False, path=None):
         self.initial_model()
-        plt.ion()
-        plt.figure()
-        plt.title("Training Loss")
-        name = ''
+        if visualize:
+            plt.ion()
+            plt.figure()
+            plt.title("Training Loss")
         for epoch in tqdm(range(0, epochs), desc="Training Epochs"):
             loss = self.train_one_step()
+            if epoch % 100 == 0:
+                self.test()
             if epoch % 10 == 0 and visualize:
+
                 plt.plot(epoch, loss, 'ro')
                 plt.semilogy()
                 plt.pause(0.1)
-            # name = f'Epoch {epoch}, Loss: {loss:.4f}'
+            if path:
+                self.save_model(path)
+
 
         plt.ioff()
 
+    def test(self):
+        data = self.test_data
+        self.model.eval()
+        with torch.no_grad():
+            z = self.model.encode(data.x, data.edge_index)
+            true = data.edge_label
+            pred = self.model.decode(z, data.edge_label_index)
+            pred = torch.sigmoid(pred)
+
+
+
+            pos_pred = (pred > 0.7).float() * true
+            neg_pred = (pred < 0.3).float() * (1-true)
+
+            no_judge = (pred < 0.7).float() * (pred > 0.3).float()
+            no_judge = no_judge.float().sum().item() / data.edge_label.size(0)
+
+            correct_pos = pos_pred.cpu().sum().item()
+            correct_neg = neg_pred.cpu().sum().item()
+
+            accuracy = (correct_pos + correct_neg) / (data.edge_label.size(0))
+
+        self.Log(f"Accuracy: {accuracy}, No Judge: {no_judge}")
+
+        return accuracy
 
     def save_model(self, path):
         torch.save(self.model, path)
         self.Log(f"Model saved at {path}")
 
+    def draw_ROC(self, data):
+        pass
 
     def cal_AUC(self, data):
-        self.model.eval()
-        with torch.no_grad():
-            z = self.model.encode(data.x, data.edge_index)
-            pos_out = self.model.decode(z, data.edge_label_index)
-            neg_out = self.model.decode(z, data.edge_label_index)
-        pos_pred = (pos_out > 0).float()
-        neg_pred = (neg_out < 0).float()
-        return pos_pred, neg_pred
+        pass

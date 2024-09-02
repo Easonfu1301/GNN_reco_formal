@@ -1,3 +1,4 @@
+import numpy as np
 import torch
 from torch_geometric.nn import GCNConv
 import torch.nn.functional as F
@@ -20,4 +21,10 @@ class GCN(torch.nn.Module):
         return self.forward(x, edge_index)
 
     def decode(self, z, edge_index):
+
+        b = z.cpu().detach().numpy()
+        # print(b.shape)
+        # print(edge_index[0].cpu().detach().numpy())
+
+
         return (z[edge_index[0]] * z[edge_index[1]]).sum(dim=-1)
