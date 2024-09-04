@@ -22,9 +22,11 @@ class GCN(torch.nn.Module):
 
     def decode(self, z, edge_index):
 
-        b = z.cpu().detach().numpy()
+        # b = z.cpu().detach().numpy()
         # print(b.shape)
         # print(edge_index[0].cpu().detach().numpy())
+
+        
 
 
         return (z[edge_index[0]] * z[edge_index[1]]).sum(dim=-1)

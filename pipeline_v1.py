@@ -11,7 +11,7 @@ import numpy as np
 
 if __name__ == "__main__":
     # Create a sample object
-    sample = HitSample(10000, 10000)
+    sample = HitSample(1000, 100)
     sample.generate_samples(1)
     # sample.visualie_sample()
     # sample.save_samples("sample_store")

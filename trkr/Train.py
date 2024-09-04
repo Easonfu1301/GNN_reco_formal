@@ -72,7 +72,7 @@ class Train:
             ax2 = fig.add_subplot(222)
             ax3 = fig.add_subplot(223)
             ax4 = fig.add_subplot(224)
-            plt.pause(5)
+            plt.pause(1)
 
 
 
@@ -123,7 +123,8 @@ class Train:
         data = self.test_data
         self.model.eval()
         with torch.no_grad():
-            z = self.model.encode(data.x, data.edge_label_index)
+            # where the edge index come ? i dont get it :(
+            z = self.model.encode(data.x, data.edge_index)
 
             true = data.edge_label
             pred = self.model.decode(z, data.edge_label_index)
@@ -131,6 +132,10 @@ class Train:
 
 
         return pred, true
+
+
+    def evaluate(self, smaples):
+        pass
 
     def save_model(self, path):
         torch.save(self.model, path)
