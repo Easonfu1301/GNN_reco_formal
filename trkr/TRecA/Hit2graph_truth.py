@@ -11,7 +11,7 @@ def create_node_edge_data(sample_df):
     edge_list = []
     last_particle_index = 0
     for idx, _ in enumerate(df_sorted["hit_id"].iloc):
-        if df_sorted["particle_index"].iloc[idx] == last_particle_index:
+        if df_sorted["particle_index"].iloc[idx] == last_particle_index and last_particle_index != 0:
             edge = [df_sorted["hit_id"].iloc[idx - 1] - 1, df_sorted["hit_id"].iloc[idx] - 1]
             edge_list.append(edge)
         last_particle_index = df_sorted["particle_index"].iloc[idx]

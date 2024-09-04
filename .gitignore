@@ -36,3 +36,5 @@
 *.pyc
 /graph_store
 /sample_store
+/pth_store
+*.png

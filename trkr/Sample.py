@@ -16,14 +16,14 @@ default_gen_mode = {
     "z_range": [2500, 2600, 2700, 2800],
     "phi_range": [0, 2 * np.pi],
     "ctheta_range": [0.5, 1],
-    "N_noise": 0,
     "gaussian_noise": 20
 }
 
 
 class HitSample:
-    def __init__(self, N_track=100):
+    def __init__(self, N_track=100, N_noise=0):
         self.N_track = N_track
+        self.N_noise = N_noise
         self.ifgen = False
         self.ifgraph = False
 
@@ -108,8 +108,32 @@ class HitSample:
         hit_df['particle_index'] = hit_df['particle_index'].astype(int)
         hit_df['hit_id'] = hit_df['hit_id'].astype(int)
 
+        if self.N_noise > 0 and self.N_noise is not None:
+            hit_df = self.gen_noise(hit_df)
+
         self.ifgen = True
         return hit_df
+
+    def gen_noise(self, hit_df):
+        N_noise = self.N_noise*4
+        if N_noise == 0:
+            return hit_df
+        squrerange = np.max(self.gen_mode["z_range"]) / np.tan(self.gen_mode["ctheta_range"][0]) * 1.2
+        x = np.random.random(N_noise) * squrerange * 2 - squrerange
+        y = np.random.random(N_noise) * squrerange * 2 - squrerange
+        z = np.random.randint(0, 3, N_noise)
+        z = np.array(self.gen_mode["z_range"])[z]
+        # print(z)
+        particle_index = 0
+        df = pd.DataFrame({'hit_id': np.linspace(1 + self.N_track*4, N_noise + self.N_track*4, N_noise, dtype=int),
+                           'x': x,
+                           'y': y,
+                           'z': z,
+                           'particle_index': particle_index})
+        hit_df = pd.concat([hit_df, df], ignore_index=True)
+        # print(hit_df)
+        return hit_df
+
 
     def visualie_sample(self, index=0):
         if not self.ifgen:
@@ -157,9 +181,6 @@ class HitSample:
         with open(f"{folder_path}/gen_mode.json", "w") as f:
             json.dump(self.gen_mode, f)
 
-
-
-
     def load_samples(self, folder_path):
         if self.ifgen:
             self.warning("Using load sample... \n \t Notice the original sample will be replaced")
@@ -180,8 +201,6 @@ class HitSample:
 
         self.Log(f"Load {len(samples)} samples from '{folder_path}' and set N_track to {self.N_track}")
 
-
-
         pass
 
     def sample2graph(self):
@@ -192,8 +211,6 @@ class HitSample:
         self.gen_graphs = graphs
         self.Log(f"Converting Done! {len(graphs)} graphs generated")
         self.ifgraph = True
-
-
 
         pass
 
@@ -210,8 +227,6 @@ class HitSample:
         # save the PYG DATA
         for i, graph in enumerate(self.gen_graphs):
             torch.save(graph, f"{folder_path}/graph_{i}.pt")
-
-
 
         pass
 
