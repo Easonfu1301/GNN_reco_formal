@@ -38,3 +38,5 @@
 /sample_store
 /pth_store
 *.png
+*.root
+*.csv

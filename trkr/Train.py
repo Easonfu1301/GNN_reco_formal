@@ -38,6 +38,10 @@ class Train:
         train_data, val_data, test_data = transform(graph)
         return train_data, val_data, test_data
 
+    def split_dataset2(self):
+        
+        pass
+
     def initial_model(self):
         train_data, val_data, test_data = self.split_dataset()
         optimizer = torch.optim.Adam(self.model.parameters(), lr=0.001)
@@ -49,7 +53,7 @@ class Train:
 
         pass
 
-    def train_one_step(self):
+    def train_one_epoch(self):
         self.model.train()
         self.optimizer.zero_grad()
         z = self.model.encode(self.train_data.x, self.train_data.edge_index)
@@ -64,7 +68,6 @@ class Train:
     def train(self, epochs=100, visualize=False, path=None):
         self.initial_model()
         if visualize:
-
             fig = plt.figure()
             plt.ion()
             # plt.title("Training Loss")
@@ -74,29 +77,21 @@ class Train:
             ax4 = fig.add_subplot(224)
             plt.pause(1)
 
-
-
-
-
         for epoch in tqdm(range(0, epochs), desc="Training Epochs"):
-            loss = self.train_one_step()
-            if epoch % np.floor(epochs/200) == 0:
+            loss = self.train_one_epoch()
+            if epoch % np.floor(epochs / 200) == 0:
                 pred, true = self.test()
                 if visualize:
                     ax2.clear()
                     self.draw_ROC(pred, true, ax2)
                     ax2.set_title("ROC Curve")
 
-
                     ax1.plot(epoch, loss, 'ro')
                     ax1.semilogy()
                     ax1.set_title("Training Loss")
 
-
-
                     ax3.plot(epoch, self.cal_AUC(pred, true), 'ro')
                     ax3.set_title("AUC")
-
 
                     ax4.plot(epoch, self.cal_acc(pred, true, self.test_data, 0.5), 'ko', label="0.5")
                     ax4.plot(epoch, self.cal_acc(pred, true, self.test_data, 0.7), 'ro', label="0.7")
@@ -106,16 +101,10 @@ class Train:
                     if epoch == 0:
                         ax4.legend()
                     ax4.set_title("Accuracy")
-
-
-
-
-
                     plt.pause(0.001)
                 if path:
                     filename = path + f"\\epoch_{epoch}.pth"
                     self.save_model(filename)
-
 
         plt.savefig("training.png", dpi=600)
 
@@ -130,9 +119,7 @@ class Train:
             pred = self.model.decode(z, data.edge_label_index)
             pred = torch.sigmoid(pred)
 
-
         return pred, true
-
 
     def evaluate(self, smaples):
         pass
@@ -151,12 +138,11 @@ class Train:
         auc = roc_auc_score(true.cpu(), pred.cpu())
         return auc
 
-
     def cal_acc(self, pred, true, data, frac=0.5):
         pos_pred = (pred > frac).float() * true
-        neg_pred = (pred < 1-frac).float() * (1 - true)
+        neg_pred = (pred < 1 - frac).float() * (1 - true)
 
-        no_judge = (pred < frac).float() * (pred > 1-frac).float()
+        no_judge = (pred < frac).float() * (pred > 1 - frac).float()
         # no_judge = no_judge.float().sum().item() / data.edge_label.size(0)
 
         correct_pos = pos_pred.cpu().sum().item()

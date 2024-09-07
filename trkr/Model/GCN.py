@@ -26,7 +26,7 @@ class GCN(torch.nn.Module):
         # print(b.shape)
         # print(edge_index[0].cpu().detach().numpy())
 
-        
+
 
 
         return (z[edge_index[0]] * z[edge_index[1]]).sum(dim=-1)

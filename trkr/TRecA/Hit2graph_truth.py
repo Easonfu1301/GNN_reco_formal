@@ -20,12 +20,13 @@ def create_node_edge_data(sample_df):
     edge_df = pd.DataFrame(np.array(edge_list), columns=['start', 'end'])
     # print(edge_df)
     # edge_df.to_csv('edge_test.csv', index=False)
-
-    return sample_df, edge_df
+    sample_df_cp = sample_df.copy()
+    return sample_df_cp, edge_df
 
 def hit2graph(sample_df):
     # 加载节点和边数据
     nodes_df, edges_df = create_node_edge_data(sample_df)
+
     # print(nodes_df)
 
     nodes_df["x"] = nodes_df["x"] / np.max(np.abs(nodes_df["x"]))
@@ -38,7 +39,7 @@ def hit2graph(sample_df):
 
     # 提取边的起点和终点
     edge_index = torch.tensor(edges_df.values.T, dtype=torch.long)
-
+    print(edge_index)
     # 创建图数据对象
     data = Data(x=x, edge_index=edge_index)
     return data

@@ -7,6 +7,10 @@ import torch
 import matplotlib.pyplot as plt
 import matplotlib
 from trkr.TRecA.Hit2graph_truth import hit2graph
+import time
+
+from trkr.TRecA.Hit2graph_potential import hit2graph as hg_test
+
 from torch_geometric.utils import to_networkx
 import networkx as nx
 
@@ -92,8 +96,8 @@ class HitSample:
         y = np.zeros((hit_num, 4))
         for idx, z in enumerate(gen_mode["z_range"]):
             r[:, idx] = z / cos_theta
-            x[:, idx] = r[:, idx] * np.cos(phi) * sin_theta + np.random.normal(0, 20, hit_num)
-            y[:, idx] = r[:, idx] * np.sin(phi) * sin_theta + np.random.normal(0, 20, hit_num)
+            x[:, idx] = r[:, idx] * np.cos(phi) * sin_theta + np.random.normal(0, 0.05, hit_num)
+            y[:, idx] = r[:, idx] * np.sin(phi) * sin_theta + np.random.normal(0, 0.15, hit_num)
 
         particle_index = np.linspace(1, hit_num, hit_num, dtype=int)
 
@@ -207,7 +211,11 @@ class HitSample:
         graphs = []
         self.Log(f"Converting {len(graphs)} samples to graphs")
         for sample in tqdm(self.gen_samples):
-            graphs.append(hit2graph(sample))
+            # graphs.append(hit2graph(sample))
+            graphs.append(hg_test(sample, self.gen_mode))
+            # t = time.time()
+            # hg_test(sample, self.gen_mode)
+            # print(time.time() - t)
         self.gen_graphs = graphs
         self.Log(f"Converting Done! {len(graphs)} graphs generated")
         self.ifgraph = True
