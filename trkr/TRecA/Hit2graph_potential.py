@@ -1,6 +1,9 @@
 import numpy as np
 import torch
 from torch_geometric.data import Data
+from trkr.TRecA.Hit2graph_truth import hit2graph as hg_truth
+import random
+
 import pandas as pd
 
 default_gen_mode = {
@@ -10,16 +13,15 @@ default_gen_mode = {
     "gaussian_noise": 20
 }
 
+
 def hit2graph(hit_df, gen_mode=default_gen_mode):
     # 加载节点和边数据
-    edges = cal_edge(hit_df, gen_mode)
-    nodes_df = hit_df
+    edges = cal_edge(hit_df.copy(), gen_mode)
+    nodes_df = cal_node(hit_df.copy())
 
     # print(nodes_df)
 
-    nodes_df["x"] = nodes_df["x"] / np.max(np.abs(nodes_df["x"]))
-    nodes_df["y"] = nodes_df["y"] / np.max(np.abs(nodes_df["y"]))
-    nodes_df["z"] = nodes_df["z"] / np.max(np.abs(nodes_df["z"]))
+
 
     # 提取节点特征和标签
     x = torch.tensor(nodes_df.iloc[:, 1:-1].values, dtype=torch.float)
@@ -33,15 +35,15 @@ def hit2graph(hit_df, gen_mode=default_gen_mode):
     data = Data(x=x, edge_index=edge_index)
     return data
 
+def cal_node(hit_df):
+    hit_df["x"] = hit_df["x"] / np.max(np.abs(hit_df["x"]))
+    hit_df["y"] = hit_df["y"] / np.max(np.abs(hit_df["y"]))
+    hit_df["z"] = hit_df["z"] / np.max(np.abs(hit_df["z"]))
+    return hit_df
 
 
 
-
-
-
-
-
-def cal_edge(hit_df, gen_mode=default_gen_mode):
+def cal_edge(hit_df, gen_mode):
     edge_list = []
     print(hit_df)
     # print(hit_df[hit_df['z'] == 2500.])
@@ -73,7 +75,6 @@ def cal_edge(hit_df, gen_mode=default_gen_mode):
     y3 = hit_df_l3['y'].values
     z3 = hit_df_l3['z'].values
 
-
     k0 = cal_k(x0, y0, z0, 0, 0, 0)
     k1 = cal_k(x1, y1, z1, 0, 0, 0)
     k2 = cal_k(x2, y2, z2, 0, 0, 0)
@@ -97,8 +98,6 @@ def cal_edge(hit_df, gen_mode=default_gen_mode):
     return edge_all
 
 
-
-
 def cal_edge_index(k, stk1, stk2):
     po_edge_st = np.where(np.abs(k) < 0.05)[0] + stk1
     po_edge_ed = np.where(np.abs(k) < 0.05)[1] + stk2
@@ -109,8 +108,8 @@ def cal_edge_index(k, stk1, stk2):
 
 def cal_k(x0, y0, z0, x1, y1, z1):
     # A 和 B 分别是形状为 (n, 2) 和 (m, 2) 的二维数组
-    r_A, z_A = (x0**2+y0**2) **0.5, z0
-    r_B, z_B = (x1**2+y1**2) **0.5, z1
+    r_A, z_A = (x0 ** 2 + y0 ** 2) ** 0.5, z0
+    r_B, z_B = (x1 ** 2 + y1 ** 2) ** 0.5, z1
     # 将 A 的 x 和 y 分别扩展成列向量
     r_A_expanded = r_A[:, np.newaxis]
     z_A_expanded = z_A[:, np.newaxis]
@@ -120,6 +119,41 @@ def cal_k(x0, y0, z0, x1, y1, z1):
     # print(slope_matrix)
 
     return slope_matrix
+
+
+def generate_train_data(hit_df, gen_mode, frac=0.7):
+    data_truth = hg_truth(hit_df)
+    true_edge = data_truth.edge_index
+    nodes = cal_node(hit_df)
+
+
+    edge_potential = cal_edge(hit_df, gen_mode)
+    edge_potential = torch.tensor(edge_potential, dtype=torch.long)
+
+    _, n_edge = edge_potential.shape
+    n_train = int(n_edge * frac)
+    selected_numbers = random.sample(range(0, n_edge), n_train)
+
+    positive_edge_index = edge_potential[:, selected_numbers]
+    negative_edge_index = sample_n_negative_sample(edge_potential, n_train)
+    edge_index = torch.cat([positive_edge_index, negative_edge_index], dim=1)
+
+    edge_label = torch.zeros(n_train * 2, dtype=torch.long)
+    edge_label_index = torch.zeros(n_train * 2, dtype=torch.long)
+
+
+    train_data = Data(x=nodes, edge_index=edge_index, edge_label=edge_index, edge_label_index = edge_label_index)
+
+    return train_data
+
+
+
+
+
+
+def sample_n_negative_sample(edge_list, N):
+    pass
+
 
 # def cal_k2(x0, y0, z0, x1, y1, z1):
 #     # A 和 B 分别是形状为 (n, 2) 和 (m, 2) 的二维数组
@@ -136,12 +170,7 @@ def cal_k(x0, y0, z0, x1, y1, z1):
 #     return slope_matrix
 
 
-
 if __name__ == '__main__':
-    x0 = np.random.rand(10000)
-    y0 = np.random.rand(10000)
-    x1 = 0
-    y1 = 0
-    k = cal_k(x0, y0, x1, y1)
-    # print((k>0).shape)
-    pass
+    selected_numbers = random.sample(range(0, 10), 5)
+    print(selected_numbers)
+    remaining_numbers = [num for num in range(0, 10) if num not in selected_numbers]

@@ -14,17 +14,17 @@ print()
 
 
 class Train:
-    def __init__(self, model, graphs):
+    def __init__(self, model, samples):
         self.model = model.to(device)
-        self.graphs = graphs
+        self.samples = samples
         pass
 
     def __len__(self):
-        return len(self.graphs)
+        return len(self.samples)
 
     def __str__(self):
         return f"BEGIN-----Trainning Info -----------\n" \
-               f"\tTraining object with {len(self.graphs)} graphs \n\n \t Model: {self.model}\n" \
+               f"\tTraining object with {len(self.samples)} graphs \n\n \t Model: {self.model}\n" \
                f"END-------------------------------\n"
 
     def warning(self, message):
@@ -34,12 +34,15 @@ class Train:
         print(f"\033[94m{text}\033[0m")
 
     def split_dataset(self):
+
         graph = self.graphs[0]  # start with only one graph after we would like dataloader
         transform = RandomLinkSplit(is_undirected=False, add_negative_train_samples=True)
         train_data, val_data, test_data = transform(graph)
         return train_data, val_data, test_data
 
     def split_dataset2(self):
+        sample = self.samples[0] # start with only one graph after we would like dataloader
+
 
         pass
 

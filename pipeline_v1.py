@@ -16,13 +16,13 @@ if __name__ == "__main__":
     sample.sample2graph()
     # # sample.save_graphs("graph_store")
     # sample.load_graphs("graph_store")
-    sample.visualize_graph()
+    # sample.visualize_graph()
 
-    # graph = sample.getgraph(0)
+    graph = sample.getgraph(0)
 
-    # model = GCN(graph.num_features, 8)
-    #
-    # train = Train(model, sample.gen_graphs)
-    # train.train(20000, True, path="pth_store")
+    model = GCN(graph.num_features, 8)
+
+    train = Train(model, sample.gen_graphs)
+    train.train(20000, True, path="pth_store")
     print(sample)
     # print(train)
