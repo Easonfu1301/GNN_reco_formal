@@ -141,7 +141,7 @@ def generate_train_data(hit_df, gen_mode, frac=0.7):
     negative_edge_index = sample_n_negative_sample(edge_potential, n_train)
     edge_index = positive_edge_index
 
-    edge_label = torch.zeros((2, n_train * 2), dtype=torch.long)
+    edge_label = torch.zeros(n_train * 2, dtype=torch.long)
     edge_label_index = torch.zeros((2, n_train * 2), dtype=torch.long)
 
 
