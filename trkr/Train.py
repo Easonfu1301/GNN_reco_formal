@@ -10,6 +10,7 @@ import matplotlib
 matplotlib.use('TkAgg')
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print()
 
 
 class Train:
@@ -39,7 +40,7 @@ class Train:
         return train_data, val_data, test_data
 
     def split_dataset2(self):
-        
+
         pass
 
     def initial_model(self):
