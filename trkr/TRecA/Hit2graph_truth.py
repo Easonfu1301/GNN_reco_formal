@@ -39,7 +39,7 @@ def hit2graph(sample_df):
 
     # 提取边的起点和终点
     edge_index = torch.tensor(edges_df.values.T, dtype=torch.long)
-    print(edge_index)
+    # print(edge_index)
     # 创建图数据对象
     data = Data(x=x, edge_index=edge_index)
     return data

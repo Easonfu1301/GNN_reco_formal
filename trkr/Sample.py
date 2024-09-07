@@ -20,7 +20,7 @@ default_gen_mode = {
     "z_range": [2500, 2600, 2700, 2800],
     "phi_range": [0, 2 * np.pi],
     "ctheta_range": [0.5, 1],
-    "gaussian_noise": 20
+    "gaussian_noise": 0.05
 }
 
 
@@ -96,8 +96,8 @@ class HitSample:
         y = np.zeros((hit_num, 4))
         for idx, z in enumerate(gen_mode["z_range"]):
             r[:, idx] = z / cos_theta
-            x[:, idx] = r[:, idx] * np.cos(phi) * sin_theta + np.random.normal(0, 0.05, hit_num)
-            y[:, idx] = r[:, idx] * np.sin(phi) * sin_theta + np.random.normal(0, 0.15, hit_num)
+            x[:, idx] = r[:, idx] * np.cos(phi) * sin_theta + np.random.normal(0, self.gen_mode["gaussian_noise"], hit_num)
+            y[:, idx] = r[:, idx] * np.sin(phi) * sin_theta + np.random.normal(0, self.gen_mode["gaussian_noise"], hit_num)
 
         particle_index = np.linspace(1, hit_num, hit_num, dtype=int)
 

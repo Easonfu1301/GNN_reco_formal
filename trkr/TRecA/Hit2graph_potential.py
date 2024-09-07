@@ -3,6 +3,7 @@ import torch
 from torch_geometric.data import Data
 from trkr.TRecA.Hit2graph_truth import hit2graph as hg_truth
 import random
+import trkr.Sample as Sample
 
 import pandas as pd
 
@@ -10,7 +11,7 @@ default_gen_mode = {
     "z_range": [2500, 2600, 2700, 2800],
     "phi_range": [0, 2 * np.pi],
     "ctheta_range": [0.5, 1],
-    "gaussian_noise": 20
+    "gaussian_noise": 0.05
 }
 
 
@@ -29,7 +30,7 @@ def hit2graph(hit_df, gen_mode=default_gen_mode):
 
     # 提取边的起点和终点
     edge_index = torch.tensor(edges, dtype=torch.long)
-    print(edge_index)
+    # print(edge_index)
 
     # 创建图数据对象
     data = Data(x=x, edge_index=edge_index)
@@ -44,8 +45,9 @@ def cal_node(hit_df):
 
 
 def cal_edge(hit_df, gen_mode):
-    edge_list = []
     print(hit_df)
+    edge_list = []
+    # print(hit_df)
     # print(hit_df[hit_df['z'] == 2500.])
     z_mode = gen_mode['z_range']
 
@@ -122,9 +124,10 @@ def cal_k(x0, y0, z0, x1, y1, z1):
 
 
 def generate_train_data(hit_df, gen_mode, frac=0.7):
-    data_truth = hg_truth(hit_df)
+    data_truth = hg_truth(hit_df.copy())
     true_edge = data_truth.edge_index
-    nodes = cal_node(hit_df)
+    nodes_df = cal_node(hit_df.copy())
+    x = torch.tensor(nodes_df.iloc[:, 1:-1].values, dtype=torch.float)
 
 
     edge_potential = cal_edge(hit_df, gen_mode)
@@ -136,13 +139,14 @@ def generate_train_data(hit_df, gen_mode, frac=0.7):
 
     positive_edge_index = edge_potential[:, selected_numbers]
     negative_edge_index = sample_n_negative_sample(edge_potential, n_train)
-    edge_index = torch.cat([positive_edge_index, negative_edge_index], dim=1)
+    edge_index = positive_edge_index
 
-    edge_label = torch.zeros(n_train * 2, dtype=torch.long)
-    edge_label_index = torch.zeros(n_train * 2, dtype=torch.long)
+    edge_label = torch.zeros((2, n_train * 2), dtype=torch.long)
+    edge_label_index = torch.zeros((2, n_train * 2), dtype=torch.long)
 
 
-    train_data = Data(x=nodes, edge_index=edge_index, edge_label=edge_index, edge_label_index = edge_label_index)
+    train_data = Data(x=x, edge_index=edge_index, edge_label=edge_label, edge_label_index = edge_label_index)
+    print(train_data)
 
     return train_data
 
@@ -171,6 +175,8 @@ def sample_n_negative_sample(edge_list, N):
 
 
 if __name__ == '__main__':
-    selected_numbers = random.sample(range(0, 10), 5)
-    print(selected_numbers)
-    remaining_numbers = [num for num in range(0, 10) if num not in selected_numbers]
+    sample = Sample.HitSample(100, 0)
+    sample.generate_samples(1)  # here we just generate one sample, but we should generate more samples
+    sample0 = sample.gen_samples[0]
+
+    generate_train_data(sample0, default_gen_mode, 0.7)
