@@ -6,13 +6,19 @@ from sklearn.metrics import roc_auc_score, roc_curve
 from tqdm import tqdm
 import matplotlib.pyplot as plt
 import matplotlib
+from trkr.TRecA.Hit2graph_potential import generate_train_data
 
 matplotlib.use('TkAgg')
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 print()
 
-
+default_gen_mode = {
+    "z_range": [2500, 2600, 2700, 2800],
+    "phi_range": [0, 2 * np.pi],
+    "ctheta_range": [0.5, 1],
+    "gaussian_noise": 0.05
+}
 class Train:
     def __init__(self, model, samples):
         self.model = model.to(device)
@@ -41,17 +47,19 @@ class Train:
         return train_data, val_data, test_data
 
     def split_dataset2(self):
-        sample = self.samples[0] # start with only one graph after we would like dataloader
+        sample = self.samples[0]  # start with only one graph after we would like dataloader
+        print(sample)
+        train_data, test_data = generate_train_data(sample, default_gen_mode)
 
-
-        pass
+        return train_data, test_data
 
     def initial_model(self):
-        train_data, val_data, test_data = self.split_dataset()
+        # train_data, val_data, test_data = self.split_dataset()
+        train_data, test_data = self.split_dataset2()
         optimizer = torch.optim.Adam(self.model.parameters(), lr=0.001)
 
         self.train_data = train_data.to(device)
-        self.val_data = val_data.to(device)
+        # self.val_data = val_data.to(device)
         self.test_data = test_data.to(device)
         self.optimizer = optimizer
 
@@ -83,7 +91,7 @@ class Train:
 
         for epoch in tqdm(range(0, epochs), desc="Training Epochs"):
             loss = self.train_one_epoch()
-            if epoch % np.floor(epochs / 200) == 0:
+            if epoch % 100 == 0:
                 pred, true = self.test()
                 if visualize:
                     ax2.clear()
@@ -105,7 +113,7 @@ class Train:
                     if epoch == 0:
                         ax4.legend()
                     ax4.set_title("Accuracy")
-                    plt.pause(0.001)
+                    plt.pause(0.1)
                 if path:
                     filename = path + f"\\epoch_{epoch}.pth"
                     self.save_model(filename)
@@ -121,6 +129,7 @@ class Train:
 
             true = data.edge_label
             pred = self.model.decode(z, data.edge_label_index)
+            print(pred)
             pred = torch.sigmoid(pred)
 
         return pred, true
@@ -129,7 +138,7 @@ class Train:
         pass
 
     def save_model(self, path):
-        torch.save(self.model, path)
+        torch.save(self.model.state_dict(), path)
         self.Log(f"Model saved at {path}")
 
     def draw_ROC(self, pred, true, ax):

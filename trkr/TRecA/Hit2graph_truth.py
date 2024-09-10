@@ -9,12 +9,41 @@ def create_node_edge_data(sample_df):
     # print(df_sorted)
 
     edge_list = []
-    last_particle_index = 0
-    for idx, _ in enumerate(df_sorted["hit_id"].iloc):
-        if df_sorted["particle_index"].iloc[idx] == last_particle_index and last_particle_index != 0:
-            edge = [df_sorted["hit_id"].iloc[idx - 1] - 1, df_sorted["hit_id"].iloc[idx] - 1]
-            edge_list.append(edge)
-        last_particle_index = df_sorted["particle_index"].iloc[idx]
+    idx = 0
+    while idx < len(df_sorted["particle_index"]):
+        if df_sorted["particle_index"].iloc[idx] == 0:
+            idx += 1
+            continue
+        tmp_idx = idx
+        while True:
+            if tmp_idx == len(df_sorted):
+                break
+            if df_sorted["particle_index"].iloc[idx] == df_sorted["particle_index"].iloc[tmp_idx]:
+                tmp_idx += 1
+            else:
+                break
+
+
+        for i in range(idx, tmp_idx):
+            for j in range(i + 1, tmp_idx):
+                if i != j:
+                    edge = [df_sorted["hit_id"].iloc[i] - 1, df_sorted["hit_id"].iloc[j] - 1]
+                    # print(edge)
+                    edge_list.append(edge)
+
+        idx = tmp_idx
+
+
+
+
+
+
+
+
+        # if df_sorted["particle_index"].iloc[idx] == last_particle_index and last_particle_index != 0:
+        #     edge = [df_sorted["hit_id"].iloc[idx - 1] - 1, df_sorted["hit_id"].iloc[idx] - 1]
+        #     edge_list.append(edge)
+        # last_particle_index = df_sorted["particle_index"].iloc[idx]
 
     # print(df_sorted["hit_id"].iloc[1])
     edge_df = pd.DataFrame(np.array(edge_list), columns=['start', 'end'])

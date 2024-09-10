@@ -22,8 +22,6 @@ def hit2graph(hit_df, gen_mode=default_gen_mode):
 
     # print(nodes_df)
 
-
-
     # 提取节点特征和标签
     x = torch.tensor(nodes_df.iloc[:, 1:-1].values, dtype=torch.float)
     y = torch.tensor(nodes_df.iloc[:, -1].values, dtype=torch.long)
@@ -36,12 +34,12 @@ def hit2graph(hit_df, gen_mode=default_gen_mode):
     data = Data(x=x, edge_index=edge_index)
     return data
 
+
 def cal_node(hit_df):
     hit_df["x"] = hit_df["x"] / np.max(np.abs(hit_df["x"]))
     hit_df["y"] = hit_df["y"] / np.max(np.abs(hit_df["y"]))
     hit_df["z"] = hit_df["z"] / np.max(np.abs(hit_df["z"]))
     return hit_df
-
 
 
 def cal_edge(hit_df, gen_mode):
@@ -101,8 +99,8 @@ def cal_edge(hit_df, gen_mode):
 
 
 def cal_edge_index(k, stk1, stk2):
-    po_edge_st = np.where(np.abs(k) < 0.05)[0] + stk1
-    po_edge_ed = np.where(np.abs(k) < 0.05)[1] + stk2
+    po_edge_st = np.where(np.abs(k) < 0.01)[0] + stk1
+    po_edge_ed = np.where(np.abs(k) < 0.01)[1] + stk2
 
     po_edge = np.vstack((po_edge_st, po_edge_ed))
     return po_edge
@@ -125,37 +123,79 @@ def cal_k(x0, y0, z0, x1, y1, z1):
 
 def generate_train_data(hit_df, gen_mode, frac=0.7):
     data_truth = hg_truth(hit_df.copy())
-    true_edge = data_truth.edge_index
+    true_edge = data_truth.edge_index.numpy()
     nodes_df = cal_node(hit_df.copy())
-    x = torch.tensor(nodes_df.iloc[:, 1:-1].values, dtype=torch.float)
-
 
     edge_potential = cal_edge(hit_df, gen_mode)
-    edge_potential = torch.tensor(edge_potential, dtype=torch.long)
+    # edge_potential = torch.tensor(edge_potential, dtype=torch.long)
 
     _, n_edge = edge_potential.shape
     n_train = int(n_edge * frac)
+
+    ############### generate train data ################
     selected_numbers = random.sample(range(0, n_edge), n_train)
 
+
     positive_edge_index = edge_potential[:, selected_numbers]
-    negative_edge_index = sample_n_negative_sample(edge_potential, n_train)
-    edge_index = positive_edge_index
+    # negative_edge_index = sample_negative_sample(hit_df.copy(), positive_edge_index, len(selected_numbers))
+    negative_edge_index = sample_negative_sample(hit_df.copy(), true_edge, true_edge.shape[1])
+    edge_index = np.hstack((true_edge, negative_edge_index))
 
-    edge_label = torch.zeros(n_train * 2, dtype=torch.long)
-    edge_label_index = torch.zeros((2, n_train * 2), dtype=torch.long)
+    edge_label = cal_edge_label(edge_index, true_edge, n_train)
+
+    x = torch.tensor(nodes_df.iloc[:, 1:-1].values, dtype=torch.float)
+    edge_index = torch.tensor(edge_index, dtype=torch.long)
+    positive_edge_index = torch.tensor(positive_edge_index, dtype=torch.long)
+
+    train_data = Data(x=x, edge_index=positive_edge_index, edge_label_index=edge_index, edge_label=edge_label)
+    # print(train_data)
+
+    ####################### generate test data ############################
+    select_test = np.array([i for i in range(n_edge) if i not in selected_numbers])
+
+    test_positive_edge_index = edge_potential[:, select_test]
+    # test_negative_edge_index = sample_negative_sample(hit_df.copy(), test_positive_edge_index, len(select_test))
+    negative_edge_index = sample_negative_sample(hit_df.copy(), true_edge, true_edge.shape[1])
+    test_edge_index = np.hstack((true_edge, negative_edge_index))
 
 
-    train_data = Data(x=x, edge_index=edge_index, edge_label=edge_label, edge_label_index = edge_label_index)
-    print(train_data)
+    test_edge_label = cal_edge_label(test_edge_index, true_edge, len(select_test))
+    test_positive_edge_index = torch.tensor(test_positive_edge_index, dtype=torch.long)
 
-    return train_data
+    test_data = Data(x=x, edge_index=test_positive_edge_index, edge_label_index=test_edge_index,
+                     edge_label=test_edge_label)
+
+    return train_data, test_data
 
 
 
+def cal_edge_label(edge_label_index, true_edge_index, n_train):
+    # print(true_edge_index)
+    edge_label = torch.zeros(edge_label_index.shape[1], dtype=torch.long)
+    for i in range(edge_label_index.shape[1]):
+        if np.any(np.all(np.array([edge_label_index[:, i]]) == true_edge_index.T, axis=1)):
+            edge_label[i] = 1
+    print(np.sum(edge_label.numpy()) / edge_label_index.shape[1])
+    return edge_label
 
 
+def sample_negative_sample(hit_df, edge_list, N):
+    hit_num = hit_df.shape[0]
+    edge_list2 = np.zeros((2, N), dtype=int)
 
-def sample_n_negative_sample(edge_list, N):
+    for i in range(N):
+        # print(i)
+        while True:
+            edge = np.array([np.random.randint(0, hit_num, 2)])
+            # print(edge)
+            if edge[0, 0] != edge[0, 1] and not np.any(np.all(edge == edge_list.T, axis=1)) and not np.any(
+                    np.all(edge == edge_list2.T, axis=1)):
+                edge_list2[:, i] = edge
+
+                break
+
+    return edge_list2
+
     pass
 
 
@@ -175,8 +215,12 @@ def sample_n_negative_sample(edge_list, N):
 
 
 if __name__ == '__main__':
-    sample = Sample.HitSample(100, 0)
-    sample.generate_samples(1)  # here we just generate one sample, but we should generate more samples
-    sample0 = sample.gen_samples[0]
-
-    generate_train_data(sample0, default_gen_mode, 0.7)
+    a = Sample.HitSample(100, 0)
+    a.generate_samples(1)
+    a_samples = a.gen_samples[0]
+    train, test = generate_train_data(a_samples, default_gen_mode)
+    print(train.edge_index)
+    print(train.edge_label)
+    print(train.edge_label_index)
+    # print(test.edge_index)
+    # print(test.edge_label)
