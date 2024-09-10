@@ -211,8 +211,8 @@ class HitSample:
         graphs = []
         self.Log(f"Converting {len(graphs)} samples to graphs")
         for sample in tqdm(self.gen_samples):
-            # graphs.append(hit2graph(sample))
-            graphs.append(hg_test(sample, self.gen_mode))
+            graphs.append(hit2graph(sample))
+            # graphs.append(hg_test(sample, self.gen_mode))
             # t = time.time()
             # hg_test(sample, self.gen_mode)
             # print(time.time() - t)

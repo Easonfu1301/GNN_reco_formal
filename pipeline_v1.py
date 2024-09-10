@@ -6,9 +6,9 @@ import numpy as np
 
 if __name__ == "__main__":
     # Create a sample object
-    sample = HitSample(100, 10)
+    sample = HitSample(20, 5)
     sample.generate_samples(1)  # here we just generate one sample, but we should generate more samples
-    # sample.visualie_sample()
+    sample.visualie_sample()
     # sample.save_samples("sample_store")
     # # sample.load_samples("sample_store")
     # sample.visualie_sample()
