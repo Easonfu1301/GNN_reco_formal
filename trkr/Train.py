@@ -79,7 +79,7 @@ class Train:
 
         for epoch in tqdm(range(0, epochs), desc="Training Epochs"):
             loss = self.train_one_epoch()
-            if epoch % np.floor(epochs / 200) == 0:
+            if epoch % np.floor(epochs / 100) == 0:
                 pred, true = self.test()
                 if visualize:
                     ax2.clear()
@@ -125,7 +125,8 @@ class Train:
         pass
 
     def save_model(self, path):
-        torch.save(self.model, path)
+        # torch.save(self.model, path)
+        torch.save(self.model.state_dict(), path)
         self.Log(f"Model saved at {path}")
 
     def draw_ROC(self, pred, true, ax):
