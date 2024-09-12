@@ -2,6 +2,8 @@ import numpy as np
 import torch
 from trkr.TRecA.Hit2graph_fake import hit2graph_fake
 from sklearn.metrics import roc_auc_score, roc_curve
+import matplotlib.pyplot as plt
+
 
 
 class Test_model:
@@ -27,10 +29,10 @@ class Test_model:
             pred = torch.sigmoid(pred)
         return pred, true
 
-    def draw_ROC(self, pred, true, ax):
+    def draw_ROC(self, pred, true):
         fpr, tpr, _ = roc_curve(true.cpu(), pred.cpu())
         auc = roc_auc_score(true.cpu(), pred.cpu())
-        ax.plot(fpr, tpr, color='darkorange', lw=2, label=f'ROC curve (area = {auc:.2f})')
+        plt.plot(fpr, tpr, color='darkorange', lw=2, label=f'ROC curve (area = {auc:.2f})', alpha=0.05)
         pass
 
     def cal_AUC(self, pred, true):

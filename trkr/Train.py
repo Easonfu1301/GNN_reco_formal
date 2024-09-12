@@ -68,7 +68,7 @@ class Train:
     def train(self, epochs=100, visualize=False, path=None):
         self.initial_model()
         if visualize:
-            fig = plt.figure()
+            fig = plt.figure(figsize=(10, 8))
             plt.ion()
             # plt.title("Training Loss")
             ax1 = fig.add_subplot(221)

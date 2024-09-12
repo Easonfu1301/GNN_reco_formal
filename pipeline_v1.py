@@ -9,8 +9,8 @@ matplotlib.use('tkAgg')
 import numpy as np
 
 if __name__ == "__main__":
-    # Create a sample object
-    # sample = HitSample(2000, 5)
+    # # # Create a sample object
+    # sample = HitSample(2000, 100)
     # sample.generate_samples(1)  # here we just generate one sample, but we should generate more samples
     # # sample.visualie_sample()
     # # sample.save_samples("sample_store")
@@ -28,15 +28,23 @@ if __name__ == "__main__":
     # graph0 = graph.getgraph(0)
     # print(graph0.num_features)
     #
-    # model = GCN(graph0.num_features, 8)
+    # model = GCN(graph0.num_features, 128)
     # #
     # train = Train(model, graph.gen_graphs)
     # # train.train(20000, True, path="pth_store")
     # train.train(2500, True, path="pth_store")
     # print(sample)
-    model = GCN(3, 8)
-    sample = HitSample(2000, 5)
+    # plt.close('all')
+
+
+    ######################## Evaluate ############################
+
+
+    plt.ioff()
+    model = GCN(3, 128)
+    sample = HitSample(2000, 100)
     sample.generate_samples(1)
+    sample.visualie_sample()
     sample0 = sample.get_samples()[0]
 
     tst = Test_model(model, "pth_store/epoch_2000.pth", sample0)
@@ -46,6 +54,8 @@ if __name__ == "__main__":
     for tt in range(N):
         data = tst.fake_hit2graph(frac_true=0.5, frac_fake=0)
         pred, true = tst.predict(data)
+        tst.draw_ROC(pred, true)
+
         print(pred, true)
         for idx, i in enumerate(np.linspace(0.5, 0.99, 20)):
             accuracy, po_acc, ne_acc, interpretable, frac_t, frac_f = tst.cal_acc(pred, true, data, i)
@@ -55,8 +65,9 @@ if __name__ == "__main__":
             z[3, idx] += interpretable
             z[4, idx] += frac_t
             z[5, idx] += frac_f
+    plt.show()
     z /= N
-
+    plt.figure()
     plt.plot(np.linspace(0.5, 1, 20), z[0, :], 'ro-')
     plt.plot(np.linspace(0.5, 1, 20), z[1, :], 'bo-')
     plt.plot(np.linspace(0.5, 1, 20), z[2, :], 'go-')
