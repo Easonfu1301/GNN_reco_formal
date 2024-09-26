@@ -2,22 +2,20 @@ import numpy as np
 
 
 class RestoreTrk:
-    def __init__(self, wight_path, Hitsample):
-        self.wight_path = wight_path
-        self.Hitsample = Hitsample
+    def __init__(self):
         pass
 
-    def hit2potential_link(self):
+    def restore(self):
         pass
 
-    def potential_link2graph(self):
+    def visualize(self):
         pass
 
-    def predict_link(self):
+    def get(self):
         pass
 
-    def restore_track(self):
+    def load(self):
         pass
 
-    def cal_accuracy(self):
+    def export(self):
         pass

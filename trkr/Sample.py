@@ -119,7 +119,7 @@ class HitSample:
         return hit_df
 
     def gen_noise(self, hit_df):
-        N_noise = self.N_noise*4
+        N_noise = self.N_noise * 4
         if N_noise == 0:
             return hit_df
         squrerange = np.max(self.gen_mode["z_range"]) / np.tan(self.gen_mode["ctheta_range"][0]) * 1.2
@@ -129,7 +129,7 @@ class HitSample:
         z = np.array(self.gen_mode["z_range"])[z]
         # print(z)
         particle_index = 0
-        df = pd.DataFrame({'hit_id': np.linspace(1 + self.N_track*4, N_noise + self.N_track*4, N_noise, dtype=int),
+        df = pd.DataFrame({'hit_id': np.linspace(1 + self.N_track * 4, N_noise + self.N_track * 4, N_noise, dtype=int),
                            'x': x,
                            'y': y,
                            'z': z,
@@ -137,7 +137,6 @@ class HitSample:
         hit_df = pd.concat([hit_df, df], ignore_index=True)
         # print(hit_df)
         return hit_df
-
 
     def visualie_sample(self, index=0):
         if not self.ifgen:
@@ -207,11 +206,8 @@ class HitSample:
 
         pass
 
-
     def get_samples(self):
         if not self.ifgen:
             self.warning("No sample generated, Therefore, no sample to return")
             return -1
         return self.gen_samples
-
-

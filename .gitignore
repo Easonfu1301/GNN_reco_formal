@@ -40,3 +40,5 @@
 *.png
 *.root
 *.csv
+/sage_test
+*.pth

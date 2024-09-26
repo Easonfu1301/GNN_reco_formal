@@ -68,7 +68,7 @@ class Train:
     def train(self, epochs=100, visualize=False, path=None):
         self.initial_model()
         if visualize:
-            fig = plt.figure(figsize=(10, 8))
+            fig = plt.figure(figsize=(10, 10))
             plt.ion()
             # plt.title("Training Loss")
             ax1 = fig.add_subplot(221)
@@ -85,22 +85,32 @@ class Train:
                     ax2.clear()
                     self.draw_ROC(pred, true, ax2)
                     ax2.set_title("ROC Curve")
+                    # set x and y axis labels
+                    ax2.set_xlabel('False Positive Rate')
+                    ax2.set_ylabel('True Positive Rate')
+
 
                     ax1.plot(epoch, loss, 'ro')
                     ax1.semilogy()
                     ax1.set_title("Training Loss")
+                    ax1.set_xlabel("Epoch")
 
                     ax3.plot(epoch, self.cal_AUC(pred, true), 'ro')
                     ax3.set_title("AUC")
+                    ax3.set_xlabel("Epoch")
 
-                    ax4.plot(epoch, self.cal_acc(pred, true, self.test_data, 0.5), 'ko', label="0.5")
-                    ax4.plot(epoch, self.cal_acc(pred, true, self.test_data, 0.7), 'ro', label="0.7")
-                    ax4.plot(epoch, self.cal_acc(pred, true, self.test_data, 0.8), 'bo', label="0.8")
-                    ax4.plot(epoch, self.cal_acc(pred, true, self.test_data, 0.9), 'go', label="0.9")
+
+                    ax4.plot(epoch, self.cal_acc(pred, true, self.test_data, 0.5), 'ko', label="pred>0.5 accuracy")
+                    ax4.plot(epoch, self.cal_acc(pred, true, self.test_data, 0.7), 'ro', label="pred>0.7 accuracy")
+                    ax4.plot(epoch, self.cal_acc(pred, true, self.test_data, 0.8), 'bo', label="pred>0.8 accuracy")
+                    ax4.plot(epoch, self.cal_acc(pred, true, self.test_data, 0.9), 'go', label="pred>0.9 accuracy")
                     # only label once
                     if epoch == 0:
                         ax4.legend()
                     ax4.set_title("Accuracy")
+                    ax4.set_xlabel("Epoch")
+
+
                     plt.pause(0.001)
                 if path:
                     filename = path + f"\\epoch_{epoch}.pth"
